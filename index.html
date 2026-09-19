@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Management | Keuangan Pribadi</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        zinc: {
+                            850: '#202024',
+                            950: '#09090b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-zinc-950 text-zinc-100 font-sans min-h-screen selection:bg-emerald-500/30">
+
+    <div class="max-w-md mx-auto p-4 md:max-w-2xl lg:max-w-4xl py-8">
+        
+        <header class="flex items-center justify-between mb-8 pb-4 border-b border-zinc-800">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                    <i data-lucide="wallet" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-semibold">E-Management</h1>
+                    <p class="text-sm text-zinc-400">Dompet Pintar Pribadi</p>
+                </div>
+            </div>
+            <button id="btn-reset" class="hidden text-sm px-3 py-1.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition">
+                <i data-lucide="rotate-ccw" class="w-4 h-4 inline-block mr-1"></i> Reset Data
+            </button>
+        </header>
+
+        <!-- VIEW: SETUP -->
+        <section id="view-setup" class="view-section animate-fade-in">
+            <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 md:p-8 max-w-lg mx-auto">
+                <h2 class="text-2xl font-semibold mb-2">Mulai Perencanaan</h2>
+                <p class="text-zinc-400 mb-6 text-sm">Tentukan target periode dan saldo awal yang Anda miliki.</p>
+                
+                <form id="form-setup" class="space-y-5">
+                    <div>
+                        <label class="block text-sm font-medium text-zinc-300 mb-1.5">Periode Target</label>
+                        <select id="input-period" required class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-100 focus:outline-none focus:border-emerald-500 transition-colors">
+                            <option value="Harian">Harian (1 Hari)</option>
+                            <option value="Mingguan">Mingguan (7 Hari)</option>
+                            <option value="Bulanan" selected>Bulanan (30 Hari)</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-zinc-300 mb-1.5">Total Saldo Awal (Rp)</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-3.5 text-zinc-500 font-medium">Rp</span>
+                            <input type="number" id="input-balance" required min="1000" placeholder="Contoh: 3000000" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-12 pr-4 py-3 text-zinc-100 focus:outline-none focus:border-emerald-500 transition-colors">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-3 rounded-xl transition-colors mt-2">
+                        Lanjut ke Alokasi <i data-lucide="arrow-right" class="w-4 h-4 inline-block ml-1"></i>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- VIEW: ALLOCATION -->
+        <section id="view-allocation" class="view-section hidden animate-fade-in">
+            <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 md:p-8 max-w-lg mx-auto">
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="text-2xl font-semibold">Alokasi Dana</h2>
+                    <span id="alloc-badge" class="px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-500">0 / 100%</span>
+                </div>
+                <p class="text-zinc-400 mb-6 text-sm">Bagi uang Anda (Rp <span id="display-setup-balance" class="font-semibold text-zinc-300"></span>) ke dalam pos kebutuhan menggunakan persentase.</p>
+                
+                <form id="form-allocation" class="space-y-4">
+                    <!-- Dynamic categories container -->
+                    <div id="categories-container" class="space-y-4">
+                        <!-- Rendered by JS -->
+                    </div>
+
+                    <div class="pt-4 border-t border-zinc-800">
+                        <div class="flex justify-between items-center mb-6">
+                            <span class="text-sm text-zinc-400">Total Persentase:</span>
+                            <span id="total-percent-display" class="text-lg font-bold text-zinc-100">0%</span>
+                        </div>
+                        <button type="submit" id="btn-save-allocation" class="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-3 rounded-xl transition-colors">
+                            Simpan & Mulai Melacak <i data-lucide="check" class="w-4 h-4 inline-block ml-1"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- VIEW: DASHBOARD -->
+        <section id="view-dashboard" class="view-section hidden animate-fade-in">
+            <!-- Top Dashboard: Summary -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div class="col-span-1 md:col-span-3 bg-gradient-to-br from-emerald-600/20 to-emerald-900/20 border border-emerald-500/20 rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <p class="text-emerald-400 text-sm font-medium mb-1">Total Saldo Tersisa (<span id="dash-period"></span>)</p>
+                        <h2 id="dash-remaining-balance" class="text-3xl md:text-4xl font-bold tracking-tight">Rp 0</h2>
+                    </div>
+                    <div class="text-left md:text-right">
+                        <p class="text-zinc-400 text-sm mb-1">Total Pengeluaran</p>
+                        <p id="dash-total-spent" class="text-xl font-semibold text-zinc-300">Rp 0</p>
+                        <p id="dash-total-budget" class="text-xs text-zinc-500 mt-1">dari Rp 0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Left Column: Categories Progress -->
+                <div class="lg:col-span-2 space-y-6">
+                    <h3 class="text-lg font-medium flex items-center gap-2">
+                        <i data-lucide="pie-chart" class="w-5 h-5 text-zinc-400"></i> Status Anggaran
+                    </h3>
+                    <div id="dash-categories-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- Right Column: Add Expense & History -->
+                <div class="space-y-6">
+                    <!-- Add Expense Card -->
+                    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
+                        <h3 class="text-lg font-medium mb-4 flex items-center gap-2">
+                            <i data-lucide="minus-circle" class="w-5 h-5 text-red-400"></i> Catat Pengeluaran
+                        </h3>
+                        <form id="form-expense" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-medium text-zinc-400 mb-1.5">Nominal (Rp)</label>
+                                <input type="number" id="exp-amount" required min="1" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-red-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-zinc-400 mb-1.5">Kategori</label>
+                                <select id="exp-category" required class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-red-500">
+                                    <!-- Options rendered by JS -->
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-zinc-400 mb-1.5">Catatan (Opsional)</label>
+                                <input type="text" id="exp-note" placeholder="Mis: Beli nasgor" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-red-500">
+                            </div>
+                            <button type="submit" class="w-full bg-red-500/10 hover:bg-red-500/20 text-red-500 font-medium py-2 rounded-lg text-sm transition-colors border border-red-500/20">
+                                Kurangi Saldo
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- History Card -->
+                    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex flex-col h-[300px]">
+                        <h3 class="text-lg font-medium mb-4 flex items-center gap-2">
+                            <i data-lucide="history" class="w-5 h-5 text-zinc-400"></i> Riwayat
+                        </h3>
+                        <div id="history-container" class="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin">
+                            <!-- Rendered by JS -->
+                            <div class="text-center text-sm text-zinc-500 mt-10">Belum ada transaksi</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Toast Notification Container -->
+        <div id="toast-container" class="fixed bottom-4 right-4 flex flex-col gap-2 z-50"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/app.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
