@@ -1,46 +1,47 @@
-// default categories
-const DEFAULT_CATEGORIES = [
-    { id: 'cat_listrik', name: 'Listrik', icon: 'zap', percent: 0, allocated: 0, spent: 0 },
-    { id: 'cat_kuota', name: 'Kuota Internet', icon: 'wifi', percent: 0, allocated: 0, spent: 0 },
-    { id: 'cat_makan', name: 'Makan/Konsumsi', icon: 'coffee', percent: 0, allocated: 0, spent: 0 },
-    { id: 'cat_pribadi', name: 'Kebutuhan Pribadi', icon: 'shopping-bag', percent: 0, allocated: 0, spent: 0 },
-    { id: 'cat_lainnya', name: 'Lainnya / Tabungan', icon: 'piggy-bank', percent: 0, allocated: 0, spent: 0 }
+// Predefined Categories
+const PRESET_CATEGORIES = [
+    { id: 'cat_listrik', name: 'Listrik', icon: 'zap' },
+    { id: 'cat_kuota', name: 'Kuota Internet', icon: 'wifi' },
+    { id: 'cat_makan', name: 'Makan/Minum', icon: 'coffee' },
+    { id: 'cat_pribadi', name: 'Kebutuhan Pribadi', icon: 'shopping-bag' },
+    { id: 'cat_kendaraan', name: 'Bensin/Transport', icon: 'car' },
+    { id: 'cat_tabungan', name: 'Tabungan', icon: 'piggy-bank' },
+    { id: 'cat_hiburan', name: 'Hiburan', icon: 'gamepad-2' }
 ];
 
 // State
 let appData = {
     period: '',
     initialBalance: 0,
-    categories: [],
+    categories: [], // { id, name, icon, allocated, spent }
     history: []
 };
 
+// Selection State (Temp)
+let selectedCats = [];
+
 // Utils
-const formatRp = (num) => {
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
-};
-const formatDate = (dateString) => {
-    const d = new Date(dateString);
+const formatRp = (num) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
+const generateId = () => 'custom_' + Math.random().toString(36).substr(2, 9);
+const formatDate = (dateStr) => {
+    const d = new Date(dateStr);
     return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 };
 
-// DOM Elements
-const views = {
-    setup: document.getElementById('view-setup'),
-    allocation: document.getElementById('view-allocation'),
-    dashboard: document.getElementById('view-dashboard')
-};
+// DOM
+const views = ['setup', 'categories', 'allocation', 'dashboard'].reduce((acc, v) => {
+    acc[v] = document.getElementById(`view-${v}`);
+    return acc;
+}, {});
 const btnReset = document.getElementById('btn-reset');
 
-// Init
 function init() {
-    const savedData = localStorage.getItem('emanagement_data');
-    if (savedData) {
-        appData = JSON.parse(savedData);
-        // Determine which view to show
-        if (appData.categories.length === 0) {
-            showView('allocation');
-            renderAllocationForm();
+    const saved = localStorage.getItem('emanagement_data_v2');
+    if (saved) {
+        appData = JSON.parse(saved);
+        if (appData.categories.length === 0 || !appData.categories[0].allocated) {
+            // Data incomplete, go to start
+            showView('setup');
         } else {
             showView('dashboard');
             renderDashboard();
@@ -51,125 +52,202 @@ function init() {
 }
 
 function saveData() {
-    localStorage.setItem('emanagement_data', JSON.stringify(appData));
+    localStorage.setItem('emanagement_data_v2', JSON.stringify(appData));
 }
 
 function showView(viewName) {
     Object.values(views).forEach(v => v.classList.add('hidden'));
     views[viewName].classList.remove('hidden');
     
-    if (viewName === 'setup') {
+    if (viewName === 'setup' || viewName === 'categories') {
         btnReset.classList.add('hidden');
     } else {
         btnReset.classList.remove('hidden');
     }
 }
 
-// SETUP LOGIC
+// 1. SETUP LOGIC
 document.getElementById('form-setup').addEventListener('submit', (e) => {
     e.preventDefault();
-    const period = document.getElementById('input-period').value;
-    const balance = parseFloat(document.getElementById('input-balance').value);
-    
-    appData.period = period;
-    appData.initialBalance = balance;
-    // deep copy default categories
-    appData.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES)); 
+    appData.period = document.getElementById('input-period').value;
+    appData.initialBalance = parseFloat(document.getElementById('input-balance').value);
     appData.history = [];
     
-    saveData();
-    showView('allocation');
-    renderAllocationForm();
+    // Reset selections
+    selectedCats = [...PRESET_CATEGORIES.slice(0, 4)]; // default select first 4
+    
+    showView('categories');
+    renderCategorySelection();
 });
 
-// ALLOCATION LOGIC
-function renderAllocationForm() {
-    document.getElementById('display-setup-balance').textContent = formatRp(appData.initialBalance);
-    const container = document.getElementById('categories-container');
+// 2. CATEGORY SELECTION LOGIC
+function renderCategorySelection() {
+    const container = document.getElementById('preset-categories');
+    container.innerHTML = '';
+    
+    const allOptions = [...PRESET_CATEGORIES, ...selectedCats.filter(c => c.id.startsWith('custom_'))];
+    
+    // Deduplicate just in case
+    const uniqueOptions = Array.from(new Set(allOptions.map(a => a.id)))
+        .map(id => allOptions.find(a => a.id === id));
+        
+    uniqueOptions.forEach(cat => {
+        const isSelected = selectedCats.some(c => c.id === cat.id);
+        const div = document.createElement('div');
+        div.className = `cursor-pointer p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 text-center select-none transform active:scale-95 ${isSelected ? 'border-brand-500 bg-brand-500/10' : 'border-slate-800 bg-surface hover:border-slate-600'}`;
+        div.innerHTML = `
+            <i data-lucide="${cat.icon}" class="w-6 h-6 ${isSelected ? 'text-brand-400' : 'text-slate-400'}"></i>
+            <span class="text-sm font-medium ${isSelected ? 'text-white' : 'text-slate-300'}">${cat.name}</span>
+        `;
+        div.addEventListener('click', () => {
+            if (isSelected) {
+                selectedCats = selectedCats.filter(c => c.id !== cat.id);
+            } else {
+                selectedCats.push(cat);
+            }
+            renderCategorySelection();
+        });
+        container.appendChild(div);
+    });
+    lucide.createIcons();
+    
+    const btnNext = document.getElementById('btn-to-allocation');
+    btnNext.disabled = selectedCats.length === 0;
+    btnNext.className = btnNext.disabled ? 'flex-1 bg-slate-800 text-slate-500 font-semibold py-4 rounded-2xl cursor-not-allowed transition-all' : 'flex-1 bg-brand-600 hover:bg-brand-500 text-white font-semibold py-4 rounded-2xl transition-all transform active:scale-[0.98] shadow-lg shadow-brand-500/20';
+}
+
+document.getElementById('btn-add-custom-cat').addEventListener('click', () => {
+    const input = document.getElementById('custom-cat-name');
+    const name = input.value.trim();
+    if (name) {
+        const newCat = { id: generateId(), name, icon: 'folder' };
+        selectedCats.push(newCat);
+        input.value = '';
+        renderCategorySelection();
+    }
+});
+
+document.getElementById('btn-to-allocation').addEventListener('click', () => {
+    if (selectedCats.length === 0) return;
+    
+    // Prepare appData.categories based on selectedCats
+    appData.categories = selectedCats.map(c => ({
+        ...c,
+        allocated: 0,
+        spent: 0
+    }));
+    
+    showView('allocation');
+    renderAllocationUI();
+});
+
+// 3. ALLOCATION LOGIC
+function renderAllocationUI() {
+    const container = document.getElementById('alloc-sliders-container');
     container.innerHTML = '';
     
     appData.categories.forEach(cat => {
         const div = document.createElement('div');
-        div.className = 'flex items-center gap-4 bg-zinc-950 p-3 border border-zinc-800 rounded-xl';
+        div.className = 'bg-surface/50 border border-slate-700/30 p-5 rounded-2xl';
         div.innerHTML = `
-            <div class="w-10 h-10 rounded-lg bg-zinc-900 flex items-center justify-center border border-zinc-800">
-                <i data-lucide="${cat.icon}" class="w-5 h-5 text-zinc-400"></i>
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center border border-slate-700">
+                        <i data-lucide="${cat.icon}" class="w-5 h-5 text-slate-300"></i>
+                    </div>
+                    <label class="font-semibold text-slate-200">${cat.name}</label>
+                </div>
+                <div class="relative w-1/3 min-w-[120px]">
+                    <span class="absolute left-3 top-2 text-slate-500 text-sm">Rp</span>
+                    <input type="number" min="0" class="alloc-num w-full bg-slate-900 border border-slate-700 rounded-xl pl-9 pr-3 py-2 text-white font-medium focus:outline-none focus:border-brand-500 text-right" data-id="${cat.id}" value="${cat.allocated}">
+                </div>
             </div>
-            <div class="flex-1">
-                <label class="block text-sm font-medium text-zinc-300">${cat.name}</label>
-                <div class="text-xs text-zinc-500 mt-0.5" id="val-${cat.id}">Rp 0</div>
-            </div>
-            <div class="w-24 relative">
-                <input type="number" min="0" max="100" class="alloc-input w-full bg-zinc-900 border border-zinc-800 rounded-lg pr-7 pl-3 py-2 text-zinc-100 text-right focus:outline-none focus:border-emerald-500" data-id="${cat.id}" value="${cat.percent || ''}" placeholder="0">
-                <span class="absolute right-3 top-2 text-zinc-500 text-sm">%</span>
+            <div class="relative w-full">
+                <input type="range" min="0" max="${appData.initialBalance}" value="${cat.allocated}" step="1000" class="alloc-slider" data-id="${cat.id}">
             </div>
         `;
         container.appendChild(div);
     });
     lucide.createIcons();
     
-    // Add event listeners to inputs
-    document.querySelectorAll('.alloc-input').forEach(input => {
-        input.addEventListener('input', calculateTotalAllocation);
+    document.querySelectorAll('.alloc-slider').forEach(el => el.addEventListener('input', handleAllocationChange));
+    document.querySelectorAll('.alloc-num').forEach(el => {
+        el.addEventListener('input', handleAllocationChange);
+        el.addEventListener('change', handleAllocationChange); // Catch blur
     });
     
-    calculateTotalAllocation(); // initial calc
+    updateAllocationState();
 }
 
-function calculateTotalAllocation() {
-    let totalPercent = 0;
-    const btnSave = document.getElementById('btn-save-allocation');
-    const badge = document.getElementById('alloc-badge');
-    const dispTotal = document.getElementById('total-percent-display');
+function handleAllocationChange(e) {
+    const id = e.target.getAttribute('data-id');
+    let val = parseFloat(e.target.value) || 0;
+    if (val < 0) val = 0;
     
-    document.querySelectorAll('.alloc-input').forEach(input => {
-        const val = parseFloat(input.value) || 0;
-        totalPercent += val;
-        
-        // update nominal display
-        const id = input.getAttribute('data-id');
-        const nominal = (val / 100) * appData.initialBalance;
-        document.getElementById(`val-${id}`).textContent = formatRp(nominal);
+    const cat = appData.categories.find(c => c.id === id);
+    
+    // Calculate how much others take
+    const otherTotal = appData.categories.filter(c => c.id !== id).reduce((s, c) => s + c.allocated, 0);
+    const maxAllowed = appData.initialBalance - otherTotal;
+    
+    if (val > maxAllowed) {
+        val = maxAllowed;
+    }
+    
+    cat.allocated = val;
+    
+    // Sync UI for this category
+    const row = e.target.closest('.bg-surface\\/50');
+    if (row) {
+        const slider = row.querySelector('.alloc-slider');
+        const numInput = row.querySelector('.alloc-num');
+        if (slider && e.target !== slider) slider.value = val;
+        if (numInput && e.target !== numInput) numInput.value = val;
+    }
+    
+    updateAllocationState();
+}
+
+function updateAllocationState() {
+    let total = 0;
+    appData.categories.forEach(cat => { total += cat.allocated; });
+    
+    const remaining = appData.initialBalance - total;
+    const disp = document.getElementById('alloc-remaining-display');
+    const btnSave = document.getElementById('btn-save-allocation');
+    
+    disp.textContent = formatRp(remaining);
+    
+    // Update max constraints on all sliders dynamically based on current remaining
+    document.querySelectorAll('.alloc-slider').forEach(slider => {
+        const id = slider.getAttribute('data-id');
+        const cat = appData.categories.find(c => c.id === id);
+        slider.max = cat.allocated + remaining; // Max they can slide is their current value + whatever is left
     });
     
-    dispTotal.textContent = `${totalPercent}%`;
-    badge.textContent = `${totalPercent} / 100%`;
-    
-    if (totalPercent === 100) {
-        dispTotal.classList.add('text-emerald-500');
-        dispTotal.classList.remove('text-red-500');
-        badge.classList.add('bg-emerald-500/10', 'text-emerald-500');
-        badge.classList.remove('bg-red-500/10', 'text-red-500');
+    if (remaining >= 0) {
+        if (remaining === 0) {
+            disp.classList.add('text-emerald-400');
+            disp.classList.remove('text-brand-400');
+        } else {
+            disp.classList.add('text-brand-400');
+            disp.classList.remove('text-emerald-400');
+        }
         btnSave.disabled = false;
     } else {
-        dispTotal.classList.add('text-red-500');
-        dispTotal.classList.remove('text-emerald-500');
-        badge.classList.add('bg-red-500/10', 'text-red-500');
-        badge.classList.remove('bg-emerald-500/10', 'text-emerald-500');
         btnSave.disabled = true;
     }
 }
 
 document.getElementById('form-allocation').addEventListener('submit', (e) => {
     e.preventDefault();
-    document.querySelectorAll('.alloc-input').forEach(input => {
-        const id = input.getAttribute('data-id');
-        const percent = parseFloat(input.value) || 0;
-        const cat = appData.categories.find(c => c.id === id);
-        if (cat) {
-            cat.percent = percent;
-            cat.allocated = (percent / 100) * appData.initialBalance;
-            cat.spent = 0;
-        }
-    });
     saveData();
     showView('dashboard');
     renderDashboard();
 });
 
-// DASHBOARD LOGIC
+// 4. DASHBOARD LOGIC
 function renderDashboard() {
-    // 1. Top Summary
     const totalAllocated = appData.initialBalance;
     const totalSpent = appData.categories.reduce((sum, cat) => sum + cat.spent, 0);
     const totalRemaining = totalAllocated - totalSpent;
@@ -179,109 +257,113 @@ function renderDashboard() {
     document.getElementById('dash-total-spent').textContent = formatRp(totalSpent);
     document.getElementById('dash-total-budget').textContent = `dari ${formatRp(totalAllocated)}`;
     
-    // 2. Categories Progress
+    const mainProgress = (totalSpent / totalAllocated) * 100;
+    const mainBar = document.getElementById('dash-main-progress');
+    mainBar.style.width = `${Math.min(100, mainProgress)}%`;
+    if (mainProgress > 85) mainBar.className = 'bg-gradient-to-r from-red-600 to-red-400 h-3 rounded-full transition-all duration-1000 relative shadow-[0_0_15px_rgba(239,68,68,0.5)]';
+    else if (mainProgress > 60) mainBar.className = 'bg-gradient-to-r from-yellow-600 to-yellow-400 h-3 rounded-full transition-all duration-1000 relative shadow-[0_0_15px_rgba(234,179,8,0.5)]';
+    else mainBar.className = 'bg-gradient-to-r from-brand-600 to-indigo-500 h-3 rounded-full transition-all duration-1000 relative shadow-[0_0_15px_rgba(59,130,246,0.5)]';
+    
     const catContainer = document.getElementById('dash-categories-container');
     catContainer.innerHTML = '';
+    
     const selectCat = document.getElementById('exp-category');
-    selectCat.innerHTML = '';
+    selectCat.innerHTML = '<option value="" disabled selected>Pilih Kategori</option>';
     
     appData.categories.forEach(cat => {
-        // Build Select Options for Expense Form
+        // Dropdown
         const opt = document.createElement('option');
         opt.value = cat.id;
         opt.textContent = cat.name;
         selectCat.appendChild(opt);
         
-        // Build Progress Card
+        // Progress Card
         const remaining = cat.allocated - cat.spent;
-        const percentageLeft = (remaining / cat.allocated) * 100;
+        const percentageLeft = cat.allocated > 0 ? (remaining / cat.allocated) * 100 : 0;
         
-        // Color logic
-        let colorClass = 'bg-emerald-500';
-        let textClass = 'text-emerald-400';
-        let bgLight = 'bg-emerald-500/10';
-        
-        if (percentageLeft <= 15) {
-            colorClass = 'bg-red-500';
-            textClass = 'text-red-400';
-            bgLight = 'bg-red-500/10';
-        } else if (percentageLeft <= 40) {
-            colorClass = 'bg-yellow-500';
-            textClass = 'text-yellow-400';
-            bgLight = 'bg-yellow-500/10';
-        }
+        let colorTheme = 'emerald';
+        if (percentageLeft <= 15) colorTheme = 'red';
+        else if (percentageLeft <= 40) colorTheme = 'yellow';
         
         const card = document.createElement('div');
-        card.className = 'bg-zinc-900 border border-zinc-800 rounded-xl p-4';
+        card.className = 'bg-surface border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-all group';
         card.innerHTML = `
-            <div class="flex items-center justify-between mb-3">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-lg ${bgLight} flex items-center justify-center">
-                        <i data-lucide="${cat.icon}" class="w-4 h-4 ${textClass}"></i>
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-${colorTheme}-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <i data-lucide="${cat.icon}" class="w-5 h-5 text-${colorTheme}-400"></i>
                     </div>
-                    <span class="font-medium text-sm text-zinc-300">${cat.name}</span>
+                    <span class="font-semibold text-slate-200">${cat.name}</span>
                 </div>
-                <span class="text-xs font-semibold ${textClass}">${percentageLeft.toFixed(0)}% Sisa</span>
+                <div class="text-right">
+                    <span class="block text-lg font-bold text-slate-100">${formatRp(remaining)}</span>
+                    <span class="text-xs font-medium text-slate-500">dari ${formatRp(cat.allocated)}</span>
+                </div>
             </div>
-            <div class="mb-2 flex justify-between items-end">
-                <span class="text-lg font-bold">${formatRp(remaining)}</span>
-                <span class="text-xs text-zinc-500">/ ${formatRp(cat.allocated)}</span>
-            </div>
-            <div class="w-full bg-zinc-950 rounded-full h-2">
-                <div class="${colorClass} h-2 rounded-full transition-all duration-500" style="width: ${Math.max(0, percentageLeft)}%"></div>
+            <div class="w-full bg-slate-900 rounded-full h-2 border border-slate-800">
+                <div class="bg-${colorTheme}-500 h-1.5 mt-[1px] ml-[1px] rounded-full transition-all duration-1000" style="width: ${Math.max(0, percentageLeft)}%; max-width: calc(100% - 2px);"></div>
             </div>
         `;
         catContainer.appendChild(card);
     });
     
-    // 3. History
-    const historyContainer = document.getElementById('history-container');
-    if (appData.history.length === 0) {
-        historyContainer.innerHTML = '<div class="text-center text-sm text-zinc-500 mt-10">Belum ada transaksi</div>';
-    } else {
-        historyContainer.innerHTML = '';
-        // Sort newest first
-        const sortedHistory = [...appData.history].reverse();
-        sortedHistory.forEach(item => {
-            const cat = appData.categories.find(c => c.id === item.categoryId);
-            const div = document.createElement('div');
-            div.className = 'flex items-center justify-between p-3 bg-zinc-950 border border-zinc-800 rounded-lg';
-            div.innerHTML = `
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded bg-zinc-900 flex items-center justify-center">
-                        <i data-lucide="${cat?.icon || 'circle'}" class="w-4 h-4 text-zinc-400"></i>
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium text-zinc-200">${cat?.name || 'Unknown'}</p>
-                        <p class="text-xs text-zinc-500">${item.note || formatDate(item.date)}</p>
-                    </div>
-                </div>
-                <div class="text-sm font-semibold text-red-400">
-                    -${formatRp(item.amount)}
-                </div>
-            `;
-            historyContainer.appendChild(div);
-        });
-    }
-    
+    renderHistory();
     lucide.createIcons();
 }
 
-// EXPENSE SUBMISSION
+function renderHistory() {
+    const historyContainer = document.getElementById('history-container');
+    if (appData.history.length === 0) {
+        historyContainer.innerHTML = `
+            <div class="h-full flex flex-col items-center justify-center text-slate-500 opacity-50">
+                <i data-lucide="ghost" class="w-10 h-10 mb-2"></i>
+                <p class="text-sm font-medium">Belum ada pengeluaran</p>
+            </div>
+        `;
+        return;
+    }
+    
+    historyContainer.innerHTML = '';
+    const sorted = [...appData.history].reverse();
+    
+    sorted.forEach((item, index) => {
+        const cat = appData.categories.find(c => c.id === item.categoryId);
+        const div = document.createElement('div');
+        div.className = `flex items-center justify-between p-3 bg-slate-900/50 border border-slate-800 rounded-xl animate-fade-in`;
+        div.style.animationDelay = `${index * 0.05}s`;
+        div.innerHTML = `
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-surface flex items-center justify-center border border-slate-700">
+                    <i data-lucide="${cat?.icon || 'circle'}" class="w-4 h-4 text-slate-400"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-slate-200">${cat?.name || 'Unknown'}</p>
+                    <p class="text-xs text-slate-500">${item.note || formatDate(item.date)}</p>
+                </div>
+            </div>
+            <div class="text-sm font-bold text-red-400 bg-red-400/10 px-2 py-1 rounded-md">
+                -${formatRp(item.amount)}
+            </div>
+        `;
+        historyContainer.appendChild(div);
+    });
+}
+
 document.getElementById('form-expense').addEventListener('submit', (e) => {
     e.preventDefault();
     const amount = parseFloat(document.getElementById('exp-amount').value);
     const categoryId = document.getElementById('exp-category').value;
     const note = document.getElementById('exp-note').value;
     
-    const catIndex = appData.categories.findIndex(c => c.id === categoryId);
-    if (catIndex > -1) {
-        const cat = appData.categories[catIndex];
-        
-        // Prevent if not enough budget? We will allow negative but show alert
+    if(!categoryId) {
+        showToast('Silakan pilih kategori!', 'error');
+        return;
+    }
+    
+    const cat = appData.categories.find(c => c.id === categoryId);
+    if (cat) {
         cat.spent += amount;
         
-        // Add to history
         appData.history.push({
             id: Date.now(),
             categoryId,
@@ -292,64 +374,51 @@ document.getElementById('form-expense').addEventListener('submit', (e) => {
         
         saveData();
         
-        // Check threshold after spent
-        const remaining = cat.allocated - cat.spent;
-        const percentageLeft = (remaining / cat.allocated) * 100;
+        const percentageLeft = ((cat.allocated - cat.spent) / cat.allocated) * 100;
+        if (percentageLeft < 0) showToast(`Overbudget! Kategori ${cat.name} minus.`, 'error');
+        else if (percentageLeft <= 15) showToast(`Kritis! Budget ${cat.name} tersisa sedikit.`, 'warning');
+        else showToast('Pengeluaran berhasil dicatat.', 'success');
         
-        if (percentageLeft < 0) {
-            showToast(`Budget ${cat.name} telah melebihi batas (Minus)!`, 'error');
-        } else if (percentageLeft <= 15) {
-            showToast(`Awas! Budget ${cat.name} tersisa sangat sedikit (${percentageLeft.toFixed(0)}%)`, 'warning');
-        } else {
-            showToast(`Pengeluaran Rp${amount.toLocaleString('id-ID')} berhasil dicatat.`, 'success');
-        }
-        
-        // Reset form
         document.getElementById('form-expense').reset();
-        
         renderDashboard();
     }
 });
 
 // RESET
 btnReset.addEventListener('click', () => {
-    if (confirm('Apakah Anda yakin ingin menghapus semua data dan mengulang dari awal?')) {
-        localStorage.removeItem('emanagement_data');
+    if (confirm('Hapus seluruh riwayat dan mulai ulang dari 0?')) {
+        localStorage.removeItem('emanagement_data_v2');
         appData = { period: '', initialBalance: 0, categories: [], history: [] };
+        selectedCats = [];
         showView('setup');
     }
 });
 
-// TOAST NOTIFICATION SYSTEM
+// TOAST
 function showToast(message, type = 'success') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
     
-    let bgClass = 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400';
-    let icon = 'check-circle';
+    let style = 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400';
+    let icon = 'check-circle-2';
     
     if (type === 'warning') {
-        bgClass = 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400';
+        style = 'border-yellow-500/30 bg-yellow-500/10 text-yellow-400';
         icon = 'alert-triangle';
     } else if (type === 'error') {
-        bgClass = 'bg-red-500/10 border-red-500/20 text-red-400';
+        style = 'border-red-500/30 bg-red-500/10 text-red-400';
         icon = 'alert-circle';
     }
     
-    toast.className = `toast-enter flex items-center gap-3 px-4 py-3 rounded-lg border shadow-lg backdrop-blur-md ${bgClass}`;
-    toast.innerHTML = `
-        <i data-lucide="${icon}" class="w-5 h-5"></i>
-        <p class="text-sm font-medium">${message}</p>
-    `;
+    toast.className = `toast-enter flex items-center gap-3 px-5 py-4 rounded-2xl border backdrop-blur-xl shadow-2xl shadow-black/50 ${style}`;
+    toast.innerHTML = `<i data-lucide="${icon}" class="w-5 h-5"></i><p class="text-sm font-semibold">${message}</p>`;
     
     container.appendChild(toast);
     lucide.createIcons();
     
-    // Auto remove
     setTimeout(() => {
-        toast.classList.remove('toast-enter');
-        toast.classList.add('toast-exit');
-        setTimeout(() => toast.remove(), 300); // Wait for exit animation
+        toast.classList.replace('toast-enter', 'toast-exit');
+        setTimeout(() => toast.remove(), 300);
     }, 4000);
 }
 
