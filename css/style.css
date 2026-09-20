@@ -6,6 +6,73 @@
     --accent-glow: transparent;
 }
 
+/* Period selector buttons */
+.period-btn.active-period {
+    border-color: #52525b;
+    background: rgba(39,39,42,0.3);
+    color: #e4e4e7;
+}
+
+/* Calendar day cells */
+.cal-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #a1a1aa;
+    transition: background 0.15s, color 0.15s;
+    position: relative;
+    user-select: none;
+}
+.cal-day:hover:not(.cal-day-empty):not(.cal-day-disabled) {
+    background: rgba(255,255,255,0.08);
+    color: #ffffff;
+}
+.cal-day-empty {
+    cursor: default;
+}
+.cal-day-disabled {
+    color: #3f3f46;
+    cursor: default;
+}
+.cal-day-today {
+    color: #ffffff;
+    font-weight: 600;
+}
+.cal-day-today::after {
+    content: '';
+    position: absolute;
+    bottom: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 3px;
+    height: 3px;
+    background: #71717a;
+    border-radius: 50%;
+}
+.cal-day-start,
+.cal-day-end {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-weight: 700;
+}
+.cal-day-in-range {
+    background: rgba(255,255,255,0.07);
+    color: #d4d4d8;
+    border-radius: 0;
+}
+.cal-day-start {
+    border-radius: 8px 0 0 8px;
+}
+.cal-day-end {
+    border-radius: 0 8px 8px 0;
+}
+.cal-day-start.cal-day-end {
+    border-radius: 8px;
+}
 body {
     background-color: var(--bg-base);
     color: #e4e4e7;
@@ -25,17 +92,20 @@ body {
     background-color: #3f3f46;
 }
 
-input[type=number]::-webkit-inner-spin-button, 
-input[type=number]::-webkit-outer-spin-button { 
-  -webkit-appearance: none; 
-  margin: 0; 
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
 }
 input[type=number] {
     -moz-appearance: textfield;
+    appearance: textfield;
 }
 
 input[type=range] {
     -webkit-appearance: none;
+    appearance: none;
     width: 100%;
     background: transparent;
     height: 4px;

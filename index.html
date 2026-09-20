@@ -63,11 +63,49 @@
                     <form id="form-setup" class="space-y-6">
                         <div>
                             <label class="block text-sm font-semibold text-zinc-300 mb-2">Periode Target</label>
-                            <select id="input-period" required class="w-full bg-surface/50 border border-white/10 rounded-2xl px-5 py-4 text-zinc-100 focus:outline-none focus:border-white/30 transition-all appearance-none cursor-pointer">
-                                <option value="Harian">Harian (1 Hari)</option>
-                                <option value="Mingguan">Mingguan (7 Hari)</option>
-                                <option value="Bulanan" selected>Bulanan (30 Hari)</option>
-                            </select>
+                            <div class="grid grid-cols-2 gap-2 mb-2" id="period-preset-btns">
+                                <button type="button" data-period="Harian" data-days="1" class="period-btn px-4 py-3 rounded-xl border border-white/10 bg-surface/50 text-zinc-400 text-sm font-medium hover:border-white/20 hover:text-zinc-200 transition-all text-center">Harian</button>
+                                <button type="button" data-period="Mingguan" data-days="7" class="period-btn px-4 py-3 rounded-xl border border-white/10 bg-surface/50 text-zinc-400 text-sm font-medium hover:border-white/20 hover:text-zinc-200 transition-all text-center">Mingguan</button>
+                                <button type="button" data-period="Bulanan" data-days="30" class="period-btn px-4 py-3 rounded-xl border border-white/5 bg-zinc-800/30 text-zinc-200 text-sm font-medium border-zinc-600 transition-all text-center active-period">Bulanan</button>
+                                <button type="button" data-period="Kustom" data-days="0" class="period-btn px-4 py-3 rounded-xl border border-white/10 bg-surface/50 text-zinc-400 text-sm font-medium hover:border-white/20 hover:text-zinc-200 transition-all text-center flex items-center justify-center gap-2">
+                                    <i data-lucide="calendar-range" class="w-4 h-4"></i> Kustom
+                                </button>
+                            </div>
+                            <input type="hidden" id="input-period" value="Bulanan">
+                            <input type="hidden" id="input-period-days" value="30">
+
+                            <!-- Date Range Picker (hidden by default) -->
+                            <div id="date-range-picker" class="hidden mt-3">
+                                <div class="glass-panel rounded-2xl p-4 border border-white/8">
+                                    <!-- Month Nav -->
+                                    <div class="flex items-center justify-between mb-4">
+                                        <button type="button" id="cal-prev" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white transition-all">
+                                            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                                        </button>
+                                        <span id="cal-month-label" class="text-sm font-semibold text-zinc-200"></span>
+                                        <button type="button" id="cal-next" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white transition-all">
+                                            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
+                                    <!-- Day Headers -->
+                                    <div class="grid grid-cols-7 mb-1">
+                                        <span class="text-center text-[10px] font-semibold text-zinc-600 py-1">Min</span>
+                                        <span class="text-center text-[10px] font-semibold text-zinc-600 py-1">Sen</span>
+                                        <span class="text-center text-[10px] font-semibold text-zinc-600 py-1">Sel</span>
+                                        <span class="text-center text-[10px] font-semibold text-zinc-600 py-1">Rab</span>
+                                        <span class="text-center text-[10px] font-semibold text-zinc-600 py-1">Kam</span>
+                                        <span class="text-center text-[10px] font-semibold text-zinc-600 py-1">Jum</span>
+                                        <span class="text-center text-[10px] font-semibold text-zinc-600 py-1">Sab</span>
+                                    </div>
+                                    <!-- Days Grid -->
+                                    <div id="cal-days" class="grid grid-cols-7 gap-y-1"></div>
+                                    <!-- Selected Range Summary -->
+                                    <div id="cal-range-summary" class="mt-4 pt-3 border-t border-white/5 text-center hidden">
+                                        <p class="text-xs text-zinc-400"><span id="cal-start-label" class="text-zinc-200 font-semibold"></span> → <span id="cal-end-label" class="text-zinc-200 font-semibold"></span></p>
+                                        <p class="text-xs text-zinc-500 mt-1"><span id="cal-days-count"></span> hari</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         
                         <div>

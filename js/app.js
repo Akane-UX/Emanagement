@@ -12,6 +12,9 @@ const PRESET_CATEGORIES = [
 // State
 let appData = {
     period: '',
+    periodDays: 0,
+    startDate: '',
+    endDate: '',
     initialBalance: 0,
     categories: [], // { id, name, icon, allocated, spent }
     history: []
@@ -121,14 +124,162 @@ function transitionTo(viewName) {
 document.getElementById('form-setup').addEventListener('submit', (e) => {
     e.preventDefault();
     appData.period = document.getElementById('input-period').value;
+    appData.periodDays = parseInt(document.getElementById('input-period-days').value) || 0;
     appData.initialBalance = parseFloat(document.getElementById('input-balance').value);
     appData.history = [];
+
+    if (appData.period === 'Kustom' && (!calStartDate || !calEndDate)) {
+        showToast('Pilih tanggal mulai dan selesai!', 'error');
+        return;
+    }
+
+    if (appData.period === 'Kustom') {
+        appData.startDate = calStartDate.toISOString().split('T')[0];
+        appData.endDate = calEndDate.toISOString().split('T')[0];
+        const diffMs = calEndDate - calStartDate;
+        appData.periodDays = Math.round(diffMs / 86400000) + 1;
+    } else {
+        appData.startDate = '';
+        appData.endDate = '';
+    }
 
     selectedCats = [...PRESET_CATEGORIES.slice(0, 4)];
 
     transitionTo('categories');
     renderCategorySelection();
 });
+
+// === Period Selector Buttons ===
+let calViewYear, calViewMonth, calStartDate = null, calEndDate = null, calSelecting = 'start';
+
+document.querySelectorAll('.period-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active-period'));
+        btn.classList.add('active-period');
+
+        const period = btn.getAttribute('data-period');
+        const days = btn.getAttribute('data-days');
+        document.getElementById('input-period').value = period;
+        document.getElementById('input-period-days').value = days;
+
+        const picker = document.getElementById('date-range-picker');
+        if (period === 'Kustom') {
+            picker.classList.remove('hidden');
+            gsap.fromTo(picker, { opacity: 0, y: -10 }, { opacity: 1, y: 0, duration: 0.3, ease: 'power3.out' });
+            const now = new Date();
+            calViewYear = now.getFullYear();
+            calViewMonth = now.getMonth();
+            calStartDate = null;
+            calEndDate = null;
+            calSelecting = 'start';
+            renderCalendar();
+        } else {
+            if (!picker.classList.contains('hidden')) {
+                gsap.to(picker, { opacity: 0, y: -10, duration: 0.2, ease: 'power2.in', onComplete: () => picker.classList.add('hidden') });
+            }
+            calStartDate = null;
+            calEndDate = null;
+        }
+    });
+});
+
+document.getElementById('cal-prev').addEventListener('click', () => {
+    calViewMonth--;
+    if (calViewMonth < 0) { calViewMonth = 11; calViewYear--; }
+    renderCalendar();
+});
+document.getElementById('cal-next').addEventListener('click', () => {
+    calViewMonth++;
+    if (calViewMonth > 11) { calViewMonth = 0; calViewYear++; }
+    renderCalendar();
+});
+
+const MONTH_NAMES = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+function renderCalendar() {
+    document.getElementById('cal-month-label').textContent = `${MONTH_NAMES[calViewMonth]} ${calViewYear}`;
+
+    const grid = document.getElementById('cal-days');
+    grid.innerHTML = '';
+
+    const firstDay = new Date(calViewYear, calViewMonth, 1).getDay();
+    const daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
+    const today = new Date(); today.setHours(0,0,0,0);
+
+    // Empty cells before first day
+    for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'cal-day cal-day-empty';
+        grid.appendChild(empty);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+        const cell = document.createElement('div');
+        const cellDate = new Date(calViewYear, calViewMonth, d);
+        cellDate.setHours(0,0,0,0);
+
+        let classes = 'cal-day';
+
+        // Past dates disabled
+        if (cellDate < today) {
+            classes += ' cal-day-disabled';
+        }
+
+        // Today dot
+        if (cellDate.getTime() === today.getTime()) {
+            classes += ' cal-day-today';
+        }
+
+        // Range highlighting
+        if (calStartDate && calEndDate) {
+            const s = calStartDate.getTime(), e = calEndDate.getTime(), c = cellDate.getTime();
+            if (c === s) classes += ' cal-day-start';
+            if (c === e) classes += ' cal-day-end';
+            if (c > s && c < e) classes += ' cal-day-in-range';
+        } else if (calStartDate && cellDate.getTime() === calStartDate.getTime()) {
+            classes += ' cal-day-start cal-day-end';
+        }
+
+        cell.className = classes;
+        cell.textContent = d;
+
+        if (cellDate >= today) {
+            cell.addEventListener('click', () => handleCalDayClick(cellDate));
+        }
+
+        grid.appendChild(cell);
+    }
+
+    lucide.createIcons();
+    updateCalSummary();
+}
+
+function handleCalDayClick(date) {
+    if (calSelecting === 'start' || (calStartDate && date < calStartDate)) {
+        calStartDate = date;
+        calEndDate = null;
+        calSelecting = 'end';
+    } else {
+        calEndDate = date;
+        calSelecting = 'start';
+    }
+    renderCalendar();
+}
+
+function updateCalSummary() {
+    const summary = document.getElementById('cal-range-summary');
+    if (calStartDate && calEndDate) {
+        const fmt = d => d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+        document.getElementById('cal-start-label').textContent = fmt(calStartDate);
+        document.getElementById('cal-end-label').textContent = fmt(calEndDate);
+        const days = Math.round((calEndDate - calStartDate) / 86400000) + 1;
+        document.getElementById('cal-days-count').textContent = days;
+        document.getElementById('input-period-days').value = days;
+        summary.classList.remove('hidden');
+    } else {
+        summary.classList.add('hidden');
+    }
+}
 
 function renderCategorySelection() {
     const container = document.getElementById('preset-categories');
@@ -290,7 +441,10 @@ function renderDashboard() {
     const totalSpent = appData.categories.reduce((sum, cat) => sum + cat.spent, 0);
     const totalRemaining = totalAllocated - totalSpent;
     
-    document.getElementById('dash-period').textContent = appData.period;
+    const periodLabel = appData.period === 'Kustom' && appData.startDate && appData.endDate
+        ? `${appData.periodDays} Hari`
+        : appData.period;
+    document.getElementById('dash-period').textContent = periodLabel;
     document.getElementById('dash-remaining-balance').textContent = formatRp(totalRemaining);
     document.getElementById('dash-total-spent').textContent = formatRp(totalSpent);
     document.getElementById('dash-total-budget').textContent = `dari ${formatRp(totalAllocated)}`;
