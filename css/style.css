@@ -1,19 +1,16 @@
-/* Emil Kowalski & Pro Max UI Inspired Styles */
-
 :root {
     --bg-base: #000000;
     --bg-surface: #0a0a0a;
     --bg-surface-hover: #171717;
-    --border-color: #27272a; /* zinc-800 */
+    --border-color: #27272a;
     --accent-glow: transparent;
 }
 
 body {
     background-color: var(--bg-base);
-    color: #e4e4e7; /* zinc-200 */
+    color: #e4e4e7;
 }
 
-/* Scrollbar Thin */
 .scrollbar-thin::-webkit-scrollbar {
     width: 4px;
 }
@@ -25,10 +22,9 @@ body {
     border-radius: 20px;
 }
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background-color: #3f3f46; /* zinc-700 */
+    background-color: #3f3f46;
 }
 
-/* Hide arrow from number inputs */
 input[type=number]::-webkit-inner-spin-button, 
 input[type=number]::-webkit-outer-spin-button { 
   -webkit-appearance: none; 
@@ -38,7 +34,6 @@ input[type=number] {
     -moz-appearance: textfield;
 }
 
-/* Custom Range Slider (Emil Kowalski style minimal) */
 input[type=range] {
     -webkit-appearance: none;
     width: 100%;
@@ -78,7 +73,6 @@ input[type=range]:active::-webkit-slider-thumb {
     transform: scale(1.15);
 }
 
-/* Glassmorphism utility - minimal */
 .glass-panel {
     background: rgba(10, 10, 10, 0.7);
     backdrop-filter: blur(12px);
@@ -86,7 +80,6 @@ input[type=range]:active::-webkit-slider-thumb {
     border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* View Sections for GSAP */
 .view-section {
     opacity: 0;
     visibility: hidden;
@@ -101,7 +94,6 @@ input[type=range]:active::-webkit-slider-thumb {
     position: relative;
 }
 
-/* Minimal GSAP Toast classes */
 .toast-container {
     position: fixed;
     bottom: 24px;

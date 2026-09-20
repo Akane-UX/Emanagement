@@ -37,7 +37,6 @@ const btnReset = document.getElementById('btn-reset');
 let currentView = null;
 
 function init() {
-    // Hide all views initially for GSAP and remove active class
     Object.values(views).forEach(v => {
         v.classList.remove('active');
         gsap.set(v, { opacity: 0, autoAlpha: 0, y: 20 });
@@ -93,7 +92,6 @@ function transitionTo(viewName) {
         nextViewEl.style.visibility = 'visible';
         currentView = viewName;
 
-        // Ensure the dashboard wrapper itself becomes visible
         if (viewName === 'dashboard') {
             gsap.set(nextViewEl, { autoAlpha: 1, y: 0, scale: 1, clearProps: "transform" });
             const bentoItems = nextViewEl.querySelectorAll('.bento-item');
@@ -112,7 +110,6 @@ function transitionTo(viewName) {
         }
     });
 
-    // Animate view wrapper if not dashboard (dashboard handles its own bento animation)
     if (viewName !== 'dashboard') {
         tl.fromTo(nextViewEl, 
             { autoAlpha: 0, y: -20, scale: 0.98 },
@@ -121,25 +118,22 @@ function transitionTo(viewName) {
     }
 }
 
-// 1. SETUP LOGIC
 document.getElementById('form-setup').addEventListener('submit', (e) => {
     e.preventDefault();
     appData.period = document.getElementById('input-period').value;
     appData.initialBalance = parseFloat(document.getElementById('input-balance').value);
     appData.history = [];
-    
-    // Reset selections
+
     selectedCats = [...PRESET_CATEGORIES.slice(0, 4)];
-    
+
     transitionTo('categories');
     renderCategorySelection();
 });
 
-// 2. CATEGORY SELECTION LOGIC
 function renderCategorySelection() {
     const container = document.getElementById('preset-categories');
     container.innerHTML = '';
-    
+
     const allOptions = [...PRESET_CATEGORIES, ...selectedCats.filter(c => c.id.startsWith('custom_'))];
     
     const uniqueOptions = Array.from(new Set(allOptions.map(a => a.id)))
@@ -194,7 +188,6 @@ document.getElementById('btn-to-allocation').addEventListener('click', () => {
     renderAllocationUI();
 });
 
-// 3. ALLOCATION LOGIC
 function renderAllocationUI() {
     const container = document.getElementById('alloc-sliders-container');
     container.innerHTML = '';
@@ -292,7 +285,6 @@ document.getElementById('form-allocation').addEventListener('submit', (e) => {
     renderDashboard();
 });
 
-// 4. DASHBOARD LOGIC
 function renderDashboard() {
     const totalAllocated = appData.initialBalance;
     const totalSpent = appData.categories.reduce((sum, cat) => sum + cat.spent, 0);
@@ -306,8 +298,7 @@ function renderDashboard() {
     const mainProgress = (totalSpent / totalAllocated) * 100;
     const mainBar = document.getElementById('dash-main-progress');
     mainBar.style.width = `${Math.min(100, mainProgress)}%`;
-    
-    // Pro max colors
+
     if (mainProgress > 85) mainBar.className = 'bg-red-500 h-full rounded-full transition-all duration-700 ease-out relative';
     else if (mainProgress > 60) mainBar.className = 'bg-zinc-400 h-full rounded-full transition-all duration-700 ease-out relative';
     else mainBar.className = 'bg-white h-full rounded-full transition-all duration-700 ease-out relative';
@@ -439,7 +430,6 @@ document.getElementById('form-expense').addEventListener('submit', (e) => {
     }
 });
 
-// RESET
 btnReset.addEventListener('click', () => {
     if (confirm('Mulai ulang dari awal? Semua riwayat akan dihapus.')) {
         localStorage.removeItem('emanagement_data_v2');
@@ -449,7 +439,6 @@ btnReset.addEventListener('click', () => {
     }
 });
 
-// TOAST (Sonner / Pro max inspired minimal toast with GSAP)
 function showToast(message, type = 'success') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
@@ -470,15 +459,13 @@ function showToast(message, type = 'success') {
     
     container.appendChild(toast);
     lucide.createIcons();
-    
-    // GSAP Enter
+
     gsap.fromTo(toast, 
         { opacity: 0, y: 15, scale: 0.95 }, 
         { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: "power2.out" }
     );
     
     setTimeout(() => {
-        // GSAP Exit
         gsap.to(toast, { 
             opacity: 0, 
             scale: 0.95, 
@@ -489,7 +476,6 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
-// Custom Dropdown Logic
 let isDropdownOpen = false;
 function toggleDropdown(e) {
     if (e) e.stopPropagation();
@@ -526,5 +512,4 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Start app
 document.addEventListener("DOMContentLoaded", init);
