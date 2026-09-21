@@ -27,6 +27,23 @@ const formatDate = (dateStr) => {
     return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 };
 
+const parseFormattedNumber = (val) => {
+    if (!val) return 0;
+    const cleaned = val.toString().replace(/\D/g, '');
+    return parseFloat(cleaned) || 0;
+};
+
+const formatNumberInput = (e) => {
+    const el = e.target;
+    let cursor = el.selectionStart;
+    let oldLength = el.value.length;
+    let val = el.value.replace(/\D/g, '');
+    if (val) val = parseInt(val, 10).toLocaleString('id-ID');
+    el.value = val;
+    let newPos = cursor + (el.value.length - oldLength);
+    el.setSelectionRange(newPos, newPos);
+};
+
 const views = ['setup', 'categories', 'allocation', 'dashboard'].reduce((acc, v) => {
     acc[v] = document.getElementById(`view-${v}`);
     return acc;
@@ -120,7 +137,7 @@ document.getElementById('form-setup').addEventListener('submit', (e) => {
     e.preventDefault();
     appData.period = document.getElementById('input-period').value;
     appData.periodDays = parseInt(document.getElementById('input-period-days').value) || 0;
-    appData.initialBalance = parseFloat(document.getElementById('input-balance').value);
+    appData.initialBalance = parseFormattedNumber(document.getElementById('input-balance').value);
     appData.history = [];
 
     if (appData.period === 'Kustom' && (!calStartDate || !calEndDate)) {
@@ -346,7 +363,7 @@ function renderAllocationUI() {
                 </div>
                 <div class="relative w-1/3 min-w-[120px]">
                     <span class="absolute left-3 top-1.5 text-zinc-500 text-xs">Rp</span>
-                    <input type="number" min="0" class="alloc-num w-full bg-black/50 border border-white/10 rounded-lg pl-8 pr-3 py-1.5 text-white text-sm font-medium focus:outline-none focus:border-white/30 text-right transition-all" data-id="${cat.id}" value="${cat.allocated}">
+                    <input type="text" inputmode="numeric" class="alloc-num w-full bg-black/50 border border-white/10 rounded-lg pl-8 pr-3 py-1.5 text-white text-sm font-medium focus:outline-none focus:border-white/30 text-right transition-all" data-id="${cat.id}" value="${cat.allocated.toLocaleString('id-ID')}">
                 </div>
             </div>
             <div class="relative w-full">
@@ -368,7 +385,10 @@ function renderAllocationUI() {
 
 function handleAllocationChange(e) {
     const id = e.target.getAttribute('data-id');
-    let val = parseFloat(e.target.value) || 0;
+    if (e.target.classList.contains('alloc-num')) {
+        formatNumberInput(e);
+    }
+    let val = parseFormattedNumber(e.target.value);
     if (val < 0) val = 0;
     
     const cat = appData.categories.find(c => c.id === id);
@@ -383,7 +403,7 @@ function handleAllocationChange(e) {
         const slider = row.querySelector('.alloc-slider');
         const numInput = row.querySelector('.alloc-num');
         if (slider && e.target !== slider) slider.value = val;
-        if (numInput && e.target !== numInput) numInput.value = val;
+        if (numInput && e.target !== numInput) numInput.value = val.toLocaleString('id-ID');
     }
     
     updateAllocationState();
@@ -541,7 +561,7 @@ function renderHistory() {
 
 document.getElementById('form-expense').addEventListener('submit', (e) => {
     e.preventDefault();
-    const amount = parseFloat(document.getElementById('exp-amount').value);
+    const amount = parseFormattedNumber(document.getElementById('exp-amount').value);
     const categoryId = document.getElementById('exp-category').value;
     const note = document.getElementById('exp-note').value;
     
@@ -655,5 +675,8 @@ document.addEventListener('click', (e) => {
         closeDropdown();
     }
 });
+
+document.getElementById('input-balance').addEventListener('input', formatNumberInput);
+document.getElementById('exp-amount').addEventListener('input', formatNumberInput);
 
 document.addEventListener("DOMContentLoaded", init);
