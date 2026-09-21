@@ -402,8 +402,12 @@ function handleAllocationChange(e) {
     if (row) {
         const slider = row.querySelector('.alloc-slider');
         const numInput = row.querySelector('.alloc-num');
-        if (slider && e.target !== slider) slider.value = val;
-        if (numInput && e.target !== numInput) numInput.value = val.toLocaleString('id-ID');
+        
+        if (slider) slider.value = val;
+        
+        if (numInput && e.target !== numInput) {
+            numInput.value = val.toLocaleString('id-ID');
+        }
     }
     
     updateAllocationState();
@@ -418,12 +422,6 @@ function updateAllocationState() {
     const btnSave = document.getElementById('btn-save-allocation');
     
     disp.textContent = formatRp(remaining);
-    
-    document.querySelectorAll('.alloc-slider').forEach(slider => {
-        const id = slider.getAttribute('data-id');
-        const cat = appData.categories.find(c => c.id === id);
-        slider.max = cat.allocated + remaining;
-    });
     
     if (remaining >= 0) {
         if (remaining === 0) {
