@@ -395,7 +395,11 @@ function handleAllocationChange(e) {
     const otherTotal = appData.categories.filter(c => c.id !== id).reduce((s, c) => s + c.allocated, 0);
     const maxAllowed = appData.initialBalance - otherTotal;
     
-    if (val > maxAllowed) val = maxAllowed;
+    let wasCapped = false;
+    if (val > maxAllowed) {
+        val = maxAllowed;
+        wasCapped = true;
+    }
     cat.allocated = val;
     
     const row = e.target.closest('.bg-surface\\/30');
@@ -405,8 +409,10 @@ function handleAllocationChange(e) {
         
         if (slider) slider.value = val;
         
-        if (numInput && e.target !== numInput) {
-            numInput.value = val.toLocaleString('id-ID');
+        if (numInput) {
+            if (e.target !== numInput || wasCapped) {
+                numInput.value = val.toLocaleString('id-ID');
+            }
         }
     }
     
