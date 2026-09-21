@@ -1,4 +1,3 @@
-// Predefined Categories
 const PRESET_CATEGORIES = [
     { id: 'cat_listrik', name: 'Listrik', icon: 'zap' },
     { id: 'cat_kuota', name: 'Kuota Internet', icon: 'wifi' },
@@ -9,21 +8,18 @@ const PRESET_CATEGORIES = [
     { id: 'cat_hiburan', name: 'Hiburan', icon: 'gamepad-2' }
 ];
 
-// State
 let appData = {
     period: '',
     periodDays: 0,
     startDate: '',
     endDate: '',
     initialBalance: 0,
-    categories: [], // { id, name, icon, allocated, spent }
+    categories: [],
     history: []
 };
 
-// Selection State (Temp)
 let selectedCats = [];
 
-// Utils
 const formatRp = (num) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
 const generateId = () => 'custom_' + Math.random().toString(36).substr(2, 9);
 const formatDate = (dateStr) => {
@@ -31,7 +27,6 @@ const formatDate = (dateStr) => {
     return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 };
 
-// DOM
 const views = ['setup', 'categories', 'allocation', 'dashboard'].reduce((acc, v) => {
     acc[v] = document.getElementById(`view-${v}`);
     return acc;
@@ -149,7 +144,6 @@ document.getElementById('form-setup').addEventListener('submit', (e) => {
     renderCategorySelection();
 });
 
-// === Period Selector Buttons ===
 let calViewYear, calViewMonth, calStartDate = null, calEndDate = null, calSelecting = 'start';
 
 document.querySelectorAll('.period-btn').forEach(btn => {
@@ -206,7 +200,6 @@ function renderCalendar() {
     const daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
     const today = new Date(); today.setHours(0,0,0,0);
 
-    // Empty cells before first day
     for (let i = 0; i < firstDay; i++) {
         const empty = document.createElement('div');
         empty.className = 'cal-day cal-day-empty';
@@ -220,17 +213,14 @@ function renderCalendar() {
 
         let classes = 'cal-day';
 
-        // Past dates disabled
         if (cellDate < today) {
             classes += ' cal-day-disabled';
         }
 
-        // Today dot
         if (cellDate.getTime() === today.getTime()) {
             classes += ' cal-day-today';
         }
 
-        // Range highlighting
         if (calStartDate && calEndDate) {
             const s = calStartDate.getTime(), e = calEndDate.getTime(), c = cellDate.getTime();
             if (c === s) classes += ' cal-day-start';

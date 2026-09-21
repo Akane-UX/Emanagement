@@ -6,14 +6,12 @@
     --accent-glow: transparent;
 }
 
-/* Period selector buttons */
 .period-btn.active-period {
     border-color: #52525b;
     background: rgba(39,39,42,0.3);
     color: #e4e4e7;
 }
 
-/* Calendar day cells */
 .cal-day {
     aspect-ratio: 1;
     display: flex;
