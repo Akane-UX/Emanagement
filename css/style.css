@@ -192,7 +192,6 @@ input[type=range]:active::-webkit-slider-thumb {
     z-index: 50;
 }
 
-/* --- View Transition Theme Toggle --- */
 ::view-transition-old(root),
 ::view-transition-new(root) {
     animation: none;

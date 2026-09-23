@@ -687,13 +687,11 @@ document.getElementById('exp-amount').addEventListener('input', formatNumberInpu
 
 document.addEventListener("DOMContentLoaded", init);
 
-// --- Theme Toggle Logic (GSAP + Emil Kowalski styling) ---
 const themeBtn = document.getElementById('btn-theme');
 const iconSun = document.getElementById('theme-icon-sun');
 const iconMoon = document.getElementById('theme-icon-moon');
 const htmlEl = document.documentElement;
 
-// Initialize theme from localStorage or default to dark
 let isDarkMode = localStorage.getItem('theme') !== 'light';
 if (isDarkMode) {
     htmlEl.classList.add('dark');
@@ -701,7 +699,6 @@ if (isDarkMode) {
     htmlEl.classList.remove('dark');
 }
 
-// Set initial icon states based on theme without animation
 if (isDarkMode) {
     gsap.set(iconSun, { opacity: 0, scale: 0.5, rotation: -90 });
     gsap.set(iconMoon, { opacity: 1, scale: 1, rotation: 0 });
@@ -720,14 +717,12 @@ themeBtn.addEventListener('click', (e) => {
             htmlEl.classList.add('dark');
             localStorage.setItem('theme', 'dark');
             
-            // Animate icons
             gsap.to(iconSun, { opacity: 0, scale: 0.5, rotation: -90, duration: 0.4, ease: "back.in(1.5)" });
             gsap.fromTo(iconMoon, { opacity: 0, scale: 0.5, rotation: 90 }, { opacity: 1, scale: 1, rotation: 0, duration: 0.5, ease: "back.out(1.5)", delay: 0.1 });
         } else {
             htmlEl.classList.remove('dark');
             localStorage.setItem('theme', 'light');
             
-            // Animate icons
             gsap.to(iconMoon, { opacity: 0, scale: 0.5, rotation: 90, duration: 0.4, ease: "back.in(1.5)" });
             gsap.fromTo(iconSun, { opacity: 0, scale: 0.5, rotation: -90 }, { opacity: 1, scale: 1, rotation: 0, duration: 0.5, ease: "back.out(1.5)", delay: 0.1 });
         }
@@ -743,21 +738,22 @@ themeBtn.addEventListener('click', (e) => {
     });
     
 transition.ready.then(() => {
+        const docX = x + window.scrollX;
+        const docY = y + window.scrollY;
         const radius = Math.hypot(
-            Math.max(x, innerWidth - x),
-            Math.max(y, innerHeight - y)
+            Math.max(docX, document.documentElement.scrollWidth - docX),
+            Math.max(docY, document.documentElement.scrollHeight - docY)
         );
         
         const proxy = { radius: 0 };
-        // Set initial state immediately to prevent flash
-        document.documentElement.style.setProperty('--vt-clip', `circle(0px at ${x}px ${y}px)`);
+        document.documentElement.style.setProperty('--vt-clip', `circle(0px at ${docX}px ${docY}px)`);
         
         gsap.to(proxy, {
             radius: radius,
-            duration: 0.8,
+            duration: 1.2,
             ease: "power2.inOut",
             onUpdate: () => {
-                document.documentElement.style.setProperty('--vt-clip', `circle(${proxy.radius}px at ${x}px ${y}px)`);
+                document.documentElement.style.setProperty('--vt-clip', `circle(${proxy.radius}px at ${docX}px ${docY}px)`);
             },
             onComplete: () => {
                 document.documentElement.style.removeProperty('--vt-clip');
