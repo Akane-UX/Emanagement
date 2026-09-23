@@ -684,3 +684,64 @@ document.getElementById('input-balance').addEventListener('input', formatNumberI
 document.getElementById('exp-amount').addEventListener('input', formatNumberInput);
 
 document.addEventListener("DOMContentLoaded", init);
+
+// --- Theme Toggle Logic (GSAP + Emil Kowalski styling) ---
+const themeBtn = document.getElementById('btn-theme');
+const iconSun = document.getElementById('theme-icon-sun');
+const iconMoon = document.getElementById('theme-icon-moon');
+const htmlEl = document.documentElement;
+
+// Initialize theme from localStorage or default to dark
+let isDarkMode = localStorage.getItem('theme') !== 'light';
+if (isDarkMode) {
+    htmlEl.classList.add('dark');
+} else {
+    htmlEl.classList.remove('dark');
+}
+
+// Set initial icon states based on theme without animation
+if (isDarkMode) {
+    gsap.set(iconSun, { opacity: 0, scale: 0.5, rotation: -90 });
+    gsap.set(iconMoon, { opacity: 1, scale: 1, rotation: 0 });
+} else {
+    gsap.set(iconMoon, { opacity: 0, scale: 0.5, rotation: 90 });
+    gsap.set(iconSun, { opacity: 1, scale: 1, rotation: 0 });
+}
+
+themeBtn.addEventListener('click', () => {
+    isDarkMode = !isDarkMode;
+    
+    if (isDarkMode) {
+        htmlEl.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+        
+        // Animate to Dark Mode (Moon appears, Sun hides)
+        gsap.to(iconSun, { 
+            opacity: 0, 
+            scale: 0.5, 
+            rotation: -90, 
+            duration: 0.4, 
+            ease: "back.in(1.5)" 
+        });
+        gsap.fromTo(iconMoon, 
+            { opacity: 0, scale: 0.5, rotation: 90 },
+            { opacity: 1, scale: 1, rotation: 0, duration: 0.5, ease: "back.out(1.5)", delay: 0.1 }
+        );
+    } else {
+        htmlEl.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+        
+        // Animate to Light Mode (Sun appears, Moon hides)
+        gsap.to(iconMoon, { 
+            opacity: 0, 
+            scale: 0.5, 
+            rotation: 90, 
+            duration: 0.4, 
+            ease: "back.in(1.5)" 
+        });
+        gsap.fromTo(iconSun, 
+            { opacity: 0, scale: 0.5, rotation: -90 },
+            { opacity: 1, scale: 1, rotation: 0, duration: 0.5, ease: "back.out(1.5)", delay: 0.1 }
+        );
+    }
+});

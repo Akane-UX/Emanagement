@@ -1,9 +1,21 @@
 :root {
+    --bg-base: #f8fafc;
+    --bg-surface: #ffffff;
+    --bg-surface-hover: #f1f5f9;
+    --border-color: #e2e8f0;
+    --accent-glow: transparent;
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(0, 0, 0, 0.08);
+}
+
+.dark {
     --bg-base: #000000;
     --bg-surface: #0a0a0a;
     --bg-surface-hover: #171717;
     --border-color: #27272a;
     --accent-glow: transparent;
+    --glass-bg: rgba(10, 10, 10, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.08);
 }
 
 .period-btn.active-period {
@@ -141,11 +153,19 @@ input[type=range]:active::-webkit-slider-thumb {
     transform: scale(1.15);
 }
 
+#btn-theme, #btn-reset {
+    transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+#btn-theme:active, #btn-reset:active {
+    transform: scale(0.95);
+}
+
 .glass-panel {
-    background: rgba(10, 10, 10, 0.7);
+    background: var(--glass-bg);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--glass-border);
 }
 
 .view-section {
