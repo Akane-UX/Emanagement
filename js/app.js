@@ -95,7 +95,7 @@ function transitionTo(viewName) {
         tl.to(prevViewEl, { 
             opacity: 0, 
             y: -10, 
-            duration: 0.7, 
+            duration: 0.3, 
             ease: "power2.in",
             onComplete: () => {
                 prevViewEl.classList.remove('active');
@@ -119,7 +119,7 @@ function transitionTo(viewName) {
                     y: 0, 
                     scale: 1, 
                     stagger: 0.05, 
-                    duration: 0.9, 
+                    duration: 0.2, 
                     ease: "power3.out",
                     clearProps: "all" 
                 }
@@ -130,7 +130,7 @@ function transitionTo(viewName) {
     if (viewName !== 'dashboard') {
         tl.fromTo(nextViewEl, 
             { autoAlpha: 0, y: -20, scale: 1.1 },
-            { autoAlpha: 1, y: 0, scale: 1, duration: 0.6, ease: "power3.out" }
+            { autoAlpha: 1, y: 0, scale: 1, duration: 0.3, ease: "power3.out" }
         );
     }
 }
