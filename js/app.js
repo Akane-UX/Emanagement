@@ -83,10 +83,10 @@ function transitionTo(viewName) {
 
     if (viewName === 'setup' || viewName === 'categories') {
         btnReset.style.display = 'none';
-        gsap.to(btnReset, { autoAlpha: 0, duration: 0.5 });
+        gsap.to(btnReset, { autoAlpha: 0, duration: 0.3 });
     } else {
         btnReset.style.display = 'flex';
-        gsap.to(btnReset, { autoAlpha: 1, duration: 0.5, delay: 0.4 });
+        gsap.to(btnReset, { autoAlpha: 1, duration: 0.3, delay: 0.2 });
     }
 
     const tl = gsap.timeline();
