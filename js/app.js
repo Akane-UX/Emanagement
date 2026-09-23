@@ -362,6 +362,7 @@ function renderAllocationUI() {
                         <i data-lucide="${cat.icon}" class="w-4 h-4 text-zinc-300"></i>
                     </div>
                     <label class="font-semibold text-sm text-zinc-200">${cat.name}</label>
+                    <span class="text-xs font-bold text-zinc-500 bg-zinc-800/50 px-2 py-0.5 rounded-md alloc-percent" data-id="${cat.id}">0%</span>
                 </div>
                 <div class="relative w-1/3 min-w-[120px]">
                     <span class="absolute left-3 top-1.5 text-zinc-500 text-xs">Rp</span>
@@ -423,7 +424,18 @@ function handleAllocationChange(e) {
 
 function updateAllocationState() {
     let total = 0;
-    appData.categories.forEach(cat => { total += cat.allocated; });
+    appData.categories.forEach(cat => { 
+        total += cat.allocated; 
+        
+        // Update percentage label
+        let percent = ((cat.allocated / appData.initialBalance) * 100) || 0;
+        let percentEl = document.querySelector(`.alloc-percent[data-id="${cat.id}"]`);
+        if (percentEl) {
+            percentEl.textContent = `${percent.toFixed(0)}%`;
+            if (percent > 0) percentEl.classList.replace('text-zinc-500', 'text-brand-400');
+            else percentEl.classList.replace('text-brand-400', 'text-zinc-500');
+        }
+    });
     
     const remaining = appData.initialBalance - total;
     const disp = document.getElementById('alloc-remaining-display');
@@ -578,6 +590,12 @@ document.getElementById('form-expense').addEventListener('submit', (e) => {
     
     const cat = appData.categories.find(c => c.id === categoryId);
     if (cat) {
+        if (cat.spent + amount > cat.allocated) {
+            const sisa = cat.allocated - cat.spent;
+            showToast(`Gagal! Pengeluaran melebihi sisa alokasi (Rp ${formatNumber(sisa)}).`, 'error');
+            return;
+        }
+        
         cat.spent += amount;
         
         appData.history.push({
@@ -591,8 +609,7 @@ document.getElementById('form-expense').addEventListener('submit', (e) => {
         saveData();
         
         const percentageLeft = ((cat.allocated - cat.spent) / cat.allocated) * 100;
-        if (percentageLeft < 0) showToast(`Overbudget! Kategori ${cat.name} minus.`, 'error');
-        else if (percentageLeft <= 15) showToast(`Kritis! Budget ${cat.name} menipis.`, 'warning');
+        if (percentageLeft <= 15) showToast(`Kritis! Budget ${cat.name} menipis.`, 'warning');
         else showToast('Tercatat.', 'success');
         
         document.getElementById('form-expense').reset();
