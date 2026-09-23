@@ -119,7 +119,7 @@ function transitionTo(viewName) {
                     y: 0, 
                     scale: 1, 
                     stagger: 0.05, 
-                    duration: 0.2, 
+                    duration: 0.3, 
                     ease: "power3.out",
                     clearProps: "all" 
                 }
@@ -426,8 +426,7 @@ function updateAllocationState() {
     let total = 0;
     appData.categories.forEach(cat => { 
         total += cat.allocated; 
-        
-        // Update percentage label
+
         let percent = ((cat.allocated / appData.initialBalance) * 100) || 0;
         let percentEl = document.querySelector(`.alloc-percent[data-id="${cat.id}"]`);
         if (percentEl) {
