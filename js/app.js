@@ -82,9 +82,11 @@ function transitionTo(viewName) {
     const prevViewEl = currentView ? views[currentView] : null;
 
     if (viewName === 'setup' || viewName === 'categories') {
-        gsap.to(btnReset, { autoAlpha: 0, duration: 0.2 });
+        btnReset.style.display = 'none';
+        gsap.to(btnReset, { autoAlpha: 0, duration: 0.7 });
     } else {
-        gsap.to(btnReset, { autoAlpha: 1, duration: 0.3, delay: 0.2 });
+        btnReset.style.display = 'flex';
+        gsap.to(btnReset, { autoAlpha: 1, duration: 0.7, delay: 0.6 });
     }
 
     const tl = gsap.timeline();
@@ -93,7 +95,7 @@ function transitionTo(viewName) {
         tl.to(prevViewEl, { 
             opacity: 0, 
             y: -10, 
-            duration: 0.2, 
+            duration: 0.7, 
             ease: "power2.in",
             onComplete: () => {
                 prevViewEl.classList.remove('active');
@@ -108,16 +110,16 @@ function transitionTo(viewName) {
         currentView = viewName;
 
         if (viewName === 'dashboard') {
-            gsap.set(nextViewEl, { autoAlpha: 1, y: 0, scale: 1, clearProps: "transform" });
+            gsap.set(nextViewEl, { autoAlpha: 1, y: 0, scale: 4, clearProps: "transform" });
             const bentoItems = nextViewEl.querySelectorAll('.bento-item');
             gsap.fromTo(bentoItems, 
                 { opacity: 0, y: -30, scale: 0.95 },
                 { 
                     opacity: 1, 
                     y: 0, 
-                    scale: 1, 
+                    scale: 3, 
                     stagger: 0.05, 
-                    duration: 0.5, 
+                    duration: 0.9, 
                     ease: "power3.out",
                     clearProps: "all" 
                 }
@@ -127,8 +129,8 @@ function transitionTo(viewName) {
 
     if (viewName !== 'dashboard') {
         tl.fromTo(nextViewEl, 
-            { autoAlpha: 0, y: -20, scale: 0.98 },
-            { autoAlpha: 1, y: 0, scale: 1, duration: 0.4, ease: "power3.out" }
+            { autoAlpha: 0, y: -20, scale: 1.2 },
+            { autoAlpha: 1, y: 0, scale: 1, duration: 0.6, ease: "power3.out" }
         );
     }
 }
@@ -708,40 +710,58 @@ if (isDarkMode) {
     gsap.set(iconSun, { opacity: 1, scale: 1, rotation: 0 });
 }
 
-themeBtn.addEventListener('click', () => {
-    isDarkMode = !isDarkMode;
+themeBtn.addEventListener('click', (e) => {
+    const x = e.clientX || innerWidth / 2;
+    const y = e.clientY || innerHeight / 2;
     
-    if (isDarkMode) {
-        htmlEl.classList.add('dark');
-        localStorage.setItem('theme', 'dark');
-        
-        // Animate to Dark Mode (Moon appears, Sun hides)
-        gsap.to(iconSun, { 
-            opacity: 0, 
-            scale: 0.5, 
-            rotation: -90, 
-            duration: 0.4, 
-            ease: "back.in(1.5)" 
-        });
-        gsap.fromTo(iconMoon, 
-            { opacity: 0, scale: 0.5, rotation: 90 },
-            { opacity: 1, scale: 1, rotation: 0, duration: 0.5, ease: "back.out(1.5)", delay: 0.1 }
-        );
-    } else {
-        htmlEl.classList.remove('dark');
-        localStorage.setItem('theme', 'light');
-        
-        // Animate to Light Mode (Sun appears, Moon hides)
-        gsap.to(iconMoon, { 
-            opacity: 0, 
-            scale: 0.5, 
-            rotation: 90, 
-            duration: 0.4, 
-            ease: "back.in(1.5)" 
-        });
-        gsap.fromTo(iconSun, 
-            { opacity: 0, scale: 0.5, rotation: -90 },
-            { opacity: 1, scale: 1, rotation: 0, duration: 0.5, ease: "back.out(1.5)", delay: 0.1 }
-        );
+    function toggleClasses() {
+        isDarkMode = !isDarkMode;
+        if (isDarkMode) {
+            htmlEl.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+            
+            // Animate icons
+            gsap.to(iconSun, { opacity: 0, scale: 0.5, rotation: -90, duration: 0.4, ease: "back.in(1.5)" });
+            gsap.fromTo(iconMoon, { opacity: 0, scale: 0.5, rotation: 90 }, { opacity: 1, scale: 1, rotation: 0, duration: 0.5, ease: "back.out(1.5)", delay: 0.1 });
+        } else {
+            htmlEl.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+            
+            // Animate icons
+            gsap.to(iconMoon, { opacity: 0, scale: 0.5, rotation: 90, duration: 0.4, ease: "back.in(1.5)" });
+            gsap.fromTo(iconSun, { opacity: 0, scale: 0.5, rotation: -90 }, { opacity: 1, scale: 1, rotation: 0, duration: 0.5, ease: "back.out(1.5)", delay: 0.1 });
+        }
     }
+
+    if (!document.startViewTransition) {
+        toggleClasses();
+        return;
+    }
+    
+    const transition = document.startViewTransition(() => {
+        toggleClasses();
+    });
+    
+transition.ready.then(() => {
+        const radius = Math.hypot(
+            Math.max(x, innerWidth - x),
+            Math.max(y, innerHeight - y)
+        );
+        
+        const proxy = { radius: 0 };
+        // Set initial state immediately to prevent flash
+        document.documentElement.style.setProperty('--vt-clip', `circle(0px at ${x}px ${y}px)`);
+        
+        gsap.to(proxy, {
+            radius: radius,
+            duration: 0.8,
+            ease: "power2.inOut",
+            onUpdate: () => {
+                document.documentElement.style.setProperty('--vt-clip', `circle(${proxy.radius}px at ${x}px ${y}px)`);
+            },
+            onComplete: () => {
+                document.documentElement.style.removeProperty('--vt-clip');
+            }
+        });
+    });
 });
