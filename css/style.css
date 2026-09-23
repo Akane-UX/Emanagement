@@ -200,10 +200,13 @@ input[type=range]:active::-webkit-slider-thumb {
 
 ::view-transition-old(root) {
     z-index: 1;
+    opacity: var(--vt-old-opacity, 1);
+    transform: translateY(var(--vt-old-y, 0px)) scale(var(--vt-old-scale, 1));
 }
 
 ::view-transition-new(root) {
     z-index: 2;
-    clip-path: var(--vt-clip, circle(100% at 50% 50%));
+    opacity: var(--vt-new-opacity, 0);
+    transform: translateY(var(--vt-new-y, 10px)) scale(var(--vt-new-scale, 0.98));
 }
 

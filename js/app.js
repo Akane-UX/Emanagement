@@ -756,25 +756,35 @@ themeBtn.addEventListener('click', (e) => {
     });
     
 transition.ready.then(() => {
-        const docX = x + window.scrollX;
-        const docY = y + window.scrollY;
-        const radius = Math.hypot(
-            Math.max(docX, document.documentElement.scrollWidth - docX),
-            Math.max(docY, document.documentElement.scrollHeight - docY)
-        );
+        const proxy = { progress: 0 };
         
-        const proxy = { radius: 0 };
-        document.documentElement.style.setProperty('--vt-clip', `circle(0px at ${docX}px ${docY}px)`);
+        document.documentElement.style.setProperty('--vt-new-opacity', '0');
+        document.documentElement.style.setProperty('--vt-new-y', '12px');
+        document.documentElement.style.setProperty('--vt-new-scale', '0.98');
+        document.documentElement.style.setProperty('--vt-old-opacity', '1');
+        document.documentElement.style.setProperty('--vt-old-y', '0px');
+        document.documentElement.style.setProperty('--vt-old-scale', '1');
         
         gsap.to(proxy, {
-            radius: radius,
-            duration: 1.2,
-            ease: "power2.inOut",
+            progress: 1,
+            duration: 0.8,
+            ease: "power3.inOut",
             onUpdate: () => {
-                document.documentElement.style.setProperty('--vt-clip', `circle(${proxy.radius}px at ${docX}px ${docY}px)`);
+                document.documentElement.style.setProperty('--vt-new-opacity', proxy.progress);
+                document.documentElement.style.setProperty('--vt-new-y', `${12 - (12 * proxy.progress)}px`);
+                document.documentElement.style.setProperty('--vt-new-scale', `${0.98 + (0.02 * proxy.progress)}`);
+                
+                document.documentElement.style.setProperty('--vt-old-opacity', 1 - proxy.progress);
+                document.documentElement.style.setProperty('--vt-old-y', `${-12 * proxy.progress}px`);
+                document.documentElement.style.setProperty('--vt-old-scale', `${1 + (0.02 * proxy.progress)}`);
             },
             onComplete: () => {
-                document.documentElement.style.removeProperty('--vt-clip');
+                document.documentElement.style.removeProperty('--vt-new-opacity');
+                document.documentElement.style.removeProperty('--vt-new-y');
+                document.documentElement.style.removeProperty('--vt-new-scale');
+                document.documentElement.style.removeProperty('--vt-old-opacity');
+                document.documentElement.style.removeProperty('--vt-old-y');
+                document.documentElement.style.removeProperty('--vt-old-scale');
             }
         });
     });
