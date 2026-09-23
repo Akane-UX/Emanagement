@@ -83,10 +83,10 @@ function transitionTo(viewName) {
 
     if (viewName === 'setup' || viewName === 'categories') {
         btnReset.style.display = 'none';
-        gsap.to(btnReset, { autoAlpha: 0, duration: 0.7 });
+        gsap.to(btnReset, { autoAlpha: 0, duration: 0.5 });
     } else {
         btnReset.style.display = 'flex';
-        gsap.to(btnReset, { autoAlpha: 1, duration: 0.7, delay: 0.6 });
+        gsap.to(btnReset, { autoAlpha: 1, duration: 0.5, delay: 0.4 });
     }
 
     const tl = gsap.timeline();
@@ -110,14 +110,14 @@ function transitionTo(viewName) {
         currentView = viewName;
 
         if (viewName === 'dashboard') {
-            gsap.set(nextViewEl, { autoAlpha: 1, y: 0, scale: 4, clearProps: "transform" });
+            gsap.set(nextViewEl, { autoAlpha: 1, y: 0, scale: 1, clearProps: "transform" });
             const bentoItems = nextViewEl.querySelectorAll('.bento-item');
             gsap.fromTo(bentoItems, 
                 { opacity: 0, y: -30, scale: 0.95 },
                 { 
                     opacity: 1, 
                     y: 0, 
-                    scale: 3, 
+                    scale: 1, 
                     stagger: 0.05, 
                     duration: 0.9, 
                     ease: "power3.out",
@@ -129,7 +129,7 @@ function transitionTo(viewName) {
 
     if (viewName !== 'dashboard') {
         tl.fromTo(nextViewEl, 
-            { autoAlpha: 0, y: -20, scale: 1.2 },
+            { autoAlpha: 0, y: -20, scale: 1.1 },
             { autoAlpha: 1, y: 0, scale: 1, duration: 0.6, ease: "power3.out" }
         );
     }
@@ -686,6 +686,7 @@ document.getElementById('input-balance').addEventListener('input', formatNumberI
 document.getElementById('exp-amount').addEventListener('input', formatNumberInput);
 
 document.addEventListener("DOMContentLoaded", init);
+124
 
 const themeBtn = document.getElementById('btn-theme');
 const iconSun = document.getElementById('theme-icon-sun');
