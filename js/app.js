@@ -302,10 +302,10 @@ function renderCategorySelection() {
     uniqueOptions.forEach(cat => {
         const isSelected = selectedCats.some(c => c.id === cat.id);
         const div = document.createElement('div');
-        div.className = `cursor-pointer p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 text-center select-none transform active:scale-95 ${isSelected ? 'border-zinc-600 bg-zinc-800/30' : 'border-white/5 bg-transparent hover:border-white/10 hover:bg-white/5'}`;
+        div.className = `cursor-pointer p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 text-center select-none transform active:scale-95 ${isSelected ? 'border-zinc-300 dark:border-zinc-600 bg-black/5 dark:bg-zinc-800/30' : 'border-black/5 dark:border-white/5 bg-transparent hover:border-black/10 dark:hover:border-white/10 hover:bg-black/5 dark:hover:bg-white/5'}`;
         div.innerHTML = `
-            <i data-lucide="${cat.icon}" class="w-5 h-5 transition-colors ${isSelected ? 'text-zinc-200' : 'text-zinc-600'}"></i>
-            <span class="text-xs font-medium transition-colors ${isSelected ? 'text-zinc-200' : 'text-zinc-500'}">${cat.name}</span>
+            <i data-lucide="${cat.icon}" class="w-5 h-5 transition-colors ${isSelected ? 'text-zinc-800 dark:text-zinc-200' : 'text-zinc-500 dark:text-zinc-600'}"></i>
+            <span class="text-xs font-medium transition-colors ${isSelected ? 'text-zinc-800 dark:text-zinc-200' : 'text-zinc-500'}">${cat.name}</span>
         `;
         div.addEventListener('click', () => {
             if (isSelected) {
@@ -321,7 +321,7 @@ function renderCategorySelection() {
     
     const btnNext = document.getElementById('btn-to-allocation');
     btnNext.disabled = selectedCats.length === 0;
-    btnNext.className = btnNext.disabled ? 'flex-1 bg-white/5 text-zinc-500 font-semibold py-4 rounded-2xl cursor-not-allowed transition-all' : 'flex-1 bg-zinc-900 border border-white/10 hover:bg-zinc-800 hover:border-white/20 text-zinc-200 font-semibold py-4 rounded-2xl transition-all transform active:scale-[0.98]';
+    btnNext.className = btnNext.disabled ? 'flex-1 bg-black/5 dark:bg-white/5 text-zinc-400 dark:text-zinc-500 font-semibold py-4 rounded-2xl cursor-not-allowed transition-all' : 'flex-1 bg-white dark:bg-zinc-900 border border-black/10 dark:border-white/10 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:border-black/20 dark:hover:border-white/20 text-zinc-800 dark:text-zinc-200 font-semibold py-4 rounded-2xl transition-all transform active:scale-[0.98]';
 }
 
 document.getElementById('btn-add-custom-cat').addEventListener('click', () => {
@@ -482,7 +482,7 @@ function renderDashboard() {
 
     if (mainProgress > 85) mainBar.className = 'bg-red-500 h-full rounded-full transition-all duration-700 ease-out relative';
     else if (mainProgress > 60) mainBar.className = 'bg-zinc-400 h-full rounded-full transition-all duration-700 ease-out relative';
-    else mainBar.className = 'bg-white h-full rounded-full transition-all duration-700 ease-out relative';
+    else mainBar.className = 'bg-zinc-800 dark:bg-white h-full rounded-full transition-all duration-700 ease-out relative';
     const catContainer = document.getElementById('dash-categories-container');
     catContainer.innerHTML = '';
     
@@ -497,12 +497,12 @@ function renderDashboard() {
     
     appData.categories.forEach((cat, index) => {
         const opt = document.createElement('div');
-        opt.className = 'px-3 py-2 text-sm text-zinc-300 hover:bg-white/10 hover:text-white rounded-lg cursor-pointer transition-colors flex items-center gap-2';
-        opt.innerHTML = `<i data-lucide="${cat.icon}" class="w-3.5 h-3.5 text-zinc-400"></i> ${cat.name}`;
+        opt.className = 'px-3 py-2 text-sm text-zinc-600 dark:text-zinc-300 hover:bg-black/10 dark:hover:bg-white/10 hover:text-zinc-900 dark:hover:text-white rounded-lg cursor-pointer transition-colors flex items-center gap-2';
+        opt.innerHTML = `<i data-lucide="${cat.icon}" class="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400"></i> ${cat.name}`;
         opt.addEventListener('click', () => {
             selectCat.value = cat.id;
             selectText.textContent = cat.name;
-            selectText.className = 'text-white';
+            selectText.className = 'text-zinc-800 dark:text-white';
             closeDropdown();
         });
         selectOptions.appendChild(opt);
@@ -510,25 +510,25 @@ function renderDashboard() {
         const remaining = cat.allocated - cat.spent;
         const percentageLeft = cat.allocated > 0 ? (remaining / cat.allocated) * 100 : 0;
         
-        let barColor = 'bg-white';
+        let barColor = 'bg-zinc-800 dark:bg-white';
         if (percentageLeft <= 15) barColor = 'bg-red-500';
         else if (percentageLeft <= 40) barColor = 'bg-zinc-400';
         
         const card = document.createElement('div');
-        card.className = 'bg-surface/50 border border-white/5 rounded-2xl p-4 hover:border-white/20 transition-all flex flex-col justify-center';
+        card.className = 'bg-black/5 dark:bg-surface/50 border border-black/10 dark:border-white/5 rounded-2xl p-4 hover:border-black/20 dark:hover:border-white/20 transition-all flex flex-col justify-center';
         card.innerHTML = `
             <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/5">
-                        <i data-lucide="${cat.icon}" class="w-3.5 h-3.5 text-zinc-300"></i>
+                    <div class="w-8 h-8 rounded-lg bg-white dark:bg-white/5 flex items-center justify-center border border-black/10 dark:border-white/5">
+                        <i data-lucide="${cat.icon}" class="w-3.5 h-3.5 text-zinc-600 dark:text-zinc-300"></i>
                     </div>
-                    <span class="font-medium text-sm text-zinc-200">${cat.name}</span>
+                    <span class="font-medium text-sm text-zinc-800 dark:text-zinc-200">${cat.name}</span>
                 </div>
                 <div class="text-right">
-                    <span class="block text-sm font-bold text-white">${formatRp(remaining)}</span>
+                    <span class="block text-sm font-bold text-black dark:text-white">${formatRp(remaining)}</span>
                 </div>
             </div>
-            <div class="w-full bg-white/5 rounded-full h-1 border border-white/5 overflow-hidden">
+            <div class="w-full bg-black/10 dark:bg-white/5 rounded-full h-1 border border-black/5 dark:border-white/5 overflow-hidden">
                 <div class="${barColor} h-full rounded-full transition-all duration-1000 ease-out" style="width: ${Math.max(0, percentageLeft)}%;"></div>
             </div>
         `;
@@ -557,18 +557,18 @@ function renderHistory() {
     sorted.forEach((item, index) => {
         const cat = appData.categories.find(c => c.id === item.categoryId);
         const div = document.createElement('div');
-        div.className = `flex items-center justify-between p-3 bg-surface/30 border border-white/5 rounded-xl transition-all hover:bg-surface/50`;
+        div.className = `flex items-center justify-between p-3 bg-black/5 dark:bg-surface/30 border border-black/10 dark:border-white/5 rounded-xl transition-all hover:bg-black/10 dark:hover:bg-surface/50`;
         div.innerHTML = `
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/10">
-                    <i data-lucide="${cat?.icon || 'circle'}" class="w-3.5 h-3.5 text-zinc-400"></i>
+                <div class="w-8 h-8 rounded-lg bg-white dark:bg-white/5 flex items-center justify-center border border-black/10 dark:border-white/10">
+                    <i data-lucide="${cat?.icon || 'circle'}" class="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400"></i>
                 </div>
                 <div>
-                    <p class="text-xs font-semibold text-zinc-200">${cat?.name || 'Unknown'}</p>
+                    <p class="text-xs font-semibold text-zinc-800 dark:text-zinc-200">${cat?.name || 'Unknown'}</p>
                     <p class="text-[10px] text-zinc-500 mt-0.5">${item.note || formatDate(item.date)}</p>
                 </div>
             </div>
-            <div class="text-xs font-bold text-white bg-white/10 px-2 py-1 rounded-md border border-white/5">
+            <div class="text-xs font-bold text-zinc-800 dark:text-white bg-black/5 dark:bg-white/10 px-2 py-1 rounded-md border border-black/10 dark:border-white/5">
                 -${formatRp(item.amount)}
             </div>
         `;
