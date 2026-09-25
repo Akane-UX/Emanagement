@@ -354,19 +354,19 @@ function renderAllocationUI() {
     
     appData.categories.forEach(cat => {
         const div = document.createElement('div');
-        div.className = 'bg-surface/30 border border-white/5 p-4 rounded-2xl';
+        div.className = 'bg-black/5 dark:bg-surface/30 border border-black/10 dark:border-white/5 p-4 rounded-2xl';
         div.innerHTML = `
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/10">
-                        <i data-lucide="${cat.icon}" class="w-4 h-4 text-zinc-300"></i>
+                    <div class="w-8 h-8 rounded-lg bg-white dark:bg-white/5 flex items-center justify-center border border-black/10 dark:border-white/10">
+                        <i data-lucide="${cat.icon}" class="w-4 h-4 text-zinc-600 dark:text-zinc-300"></i>
                     </div>
-                    <label class="font-semibold text-sm text-zinc-200">${cat.name}</label>
-                    <span class="text-xs font-bold text-zinc-500 bg-zinc-800/50 px-2 py-0.5 rounded-md alloc-percent" data-id="${cat.id}">0%</span>
+                    <label class="font-semibold text-sm text-zinc-800 dark:text-zinc-200">${cat.name}</label>
+                    <span class="text-xs font-bold text-zinc-600 dark:text-zinc-500 bg-black/10 dark:bg-zinc-800/50 px-2 py-0.5 rounded-md alloc-percent" data-id="${cat.id}">0%</span>
                 </div>
                 <div class="relative w-1/3 min-w-[120px]">
                     <span class="absolute left-3 top-1.5 text-zinc-500 text-xs">Rp</span>
-                    <input type="text" inputmode="numeric" class="alloc-num w-full bg-black/50 border border-white/10 rounded-lg pl-8 pr-3 py-1.5 text-white text-sm font-medium focus:outline-none focus:border-white/30 text-right transition-all" data-id="${cat.id}" value="${cat.allocated.toLocaleString('id-ID')}">
+                    <input type="text" inputmode="numeric" class="alloc-num w-full bg-white dark:bg-black/50 border border-black/10 dark:border-white/10 rounded-lg pl-8 pr-3 py-1.5 text-zinc-900 dark:text-white text-sm font-medium focus:outline-none focus:border-black/30 dark:focus:border-white/30 text-right transition-all" data-id="${cat.id}" value="${cat.allocated.toLocaleString('id-ID')}">
                 </div>
             </div>
             <div class="relative w-full">
@@ -405,7 +405,7 @@ function handleAllocationChange(e) {
     }
     cat.allocated = val;
     
-    const row = e.target.closest('.bg-surface\\/30');
+    const row = e.target.closest('.alloc-row') || e.target.closest('div.rounded-2xl');
     if (row) {
         const slider = row.querySelector('.alloc-slider');
         const numInput = row.querySelector('.alloc-num');
@@ -629,7 +629,7 @@ function showToast(message, type = 'success') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
     
-    let style = 'border-white/10 bg-surface/90 text-zinc-200';
+    let style = 'border-black/10 dark:border-white/10 bg-white/90 dark:bg-surface/90 text-zinc-800 dark:text-zinc-200';
     let icon = 'check';
     
     if (type === 'warning') {
